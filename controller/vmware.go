@@ -53,55 +53,55 @@ var (
 		Subsystem: "datastore",
 		Name:      "capacity_size",
 		Help:      "Datastore total",
-	}, []string{"ds_name"})
+	}, []string{"ds_name", "host_name"})
 	prometheusUsageDs = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "datastore",
 		Name:      "freespace_size",
 		Help:      "Datastore free",
-	}, []string{"ds_name"})
+	}, []string{"ds_name", "host_name"})
 	prometheusVmBoot = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "boot_timestamp_seconds",
 		Help:      "VMWare VM boot time in seconds",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 	prometheusVmCpuAval = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "cpu_avaleblemhz",
 		Help:      "VMWare VM usage CPU",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 	prometheusVmCpuUsage = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "cpu_usagemhz",
 		Help:      "VMWare VM usage CPU",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 	prometheusVmNumCpu = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "num_cpu",
 		Help:      "Available number of cores",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 	prometheusVmMemAval = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "mem_avaleble",
 		Help:      "Available memory",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 	prometheusVmMemUsage = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "mem_usage",
 		Help:      "Usage memory",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 	prometheusVmNetRec = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "vm",
 		Name:      "net_rec",
 		Help:      "Usage memory",
-	}, []string{"vm_name"})
+	}, []string{"vm_name", "host_name"})
 )
 
 func totalCpu(hs mo.HostSystem) float64 {
@@ -173,12 +173,13 @@ func NewVmwareHostMetrics(host string, username string, password string) {
 	}
 
 	for _, hs := range hss {
-		prometheusHostPowerState.WithLabelValues(hs.Summary.Config.Name).Set(powerState(hs.Summary.Runtime.PowerState))
-		prometheusHostBoot.WithLabelValues(hs.Summary.Config.Name).Set(float64(hs.Summary.Runtime.BootTime.Unix()))
-		prometheusTotalCpu.WithLabelValues(hs.Summary.Config.Name).Set(totalCpu(hs))
-		prometheusUsageCpu.WithLabelValues(hs.Summary.Config.Name).Set(freeCPU(hs))
-		prometheusTotalMem.WithLabelValues(hs.Summary.Config.Name).Set(float64(hs.Summary.Hardware.MemorySize))
-		prometheusUsageMem.WithLabelValues(hs.Summary.Config.Name).Set(float64(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
+		lableEsxHost := hs.Summary.Config.Name
+		prometheusHostPowerState.WithLabelValues(lableEsxHost).Set(powerState(hs.Summary.Runtime.PowerState))
+		prometheusHostBoot.WithLabelValues(lableEsxHost).Set(float64(hs.Summary.Runtime.BootTime.Unix()))
+		prometheusTotalCpu.WithLabelValues(lableEsxHost).Set(totalCpu(hs))
+		prometheusUsageCpu.WithLabelValues(lableEsxHost).Set(freeCPU(hs))
+		prometheusTotalMem.WithLabelValues(lableEsxHost).Set(float64(hs.Summary.Hardware.MemorySize))
+		prometheusUsageMem.WithLabelValues(lableEsxHost).Set(float64(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
 	}
 
 }
@@ -208,9 +209,12 @@ func NewVmwareDsMetrics(host string, username string, password string) {
 		log.Fatal(err)
 	}
 
+	lableEsxHost := getLableHostname(host, username, password)
+
 	for _, ds := range dss {
-		prometheusTotalDs.WithLabelValues(ds.Summary.Name).Set(float64(ds.Summary.Capacity))
-		prometheusUsageDs.WithLabelValues(ds.Summary.Name).Set(float64(ds.Summary.FreeSpace))
+		dsname := ds.Summary.Name
+		prometheusTotalDs.WithLabelValues(dsname, lableEsxHost).Set(float64(ds.Summary.Capacity))
+		prometheusUsageDs.WithLabelValues(dsname, lableEsxHost).Set(float64(ds.Summary.FreeSpace))
 	}
 
 }
@@ -240,13 +244,52 @@ func NewVmwareVmMetrics(host string, username string, password string) {
 		log.Fatal(err)
 	}
 
+	lableEsxHost := getLableHostname(host, username, password)
+
 	for _, vm := range vms {
-		prometheusVmBoot.WithLabelValues(vm.Summary.Config.Name).Set(float64(vm.Summary.Runtime.BootTime.Unix()))
-		prometheusVmCpuAval.WithLabelValues(vm.Summary.Config.Name).Set(float64(vm.Summary.Runtime.MaxCpuUsage) * 1000 * 1000)
-		prometheusVmCpuUsage.WithLabelValues(vm.Summary.Config.Name).Set(float64(vm.Summary.QuickStats.OverallCpuUsage) * 1000 * 1000)
-		prometheusVmNumCpu.WithLabelValues(vm.Summary.Config.Name).Set(float64(vm.Summary.Config.NumCpu))
-		prometheusVmMemAval.WithLabelValues(vm.Summary.Config.Name).Set(float64(vm.Summary.Config.MemorySizeMB))
-		prometheusVmMemUsage.WithLabelValues(vm.Summary.Config.Name).Set(float64(vm.Summary.QuickStats.GuestMemoryUsage) * 1024 * 1204)
+		vmname := vm.Summary.Config.Name
+		prometheusVmBoot.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Runtime.BootTime.Unix()))
+		prometheusVmCpuAval.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Runtime.MaxCpuUsage) * 1000 * 1000)
+		prometheusVmCpuUsage.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.QuickStats.OverallCpuUsage) * 1000 * 1000)
+		prometheusVmNumCpu.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Config.NumCpu))
+		prometheusVmMemAval.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Config.MemorySizeMB))
+		prometheusVmMemUsage.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.QuickStats.GuestMemoryUsage) * 1024 * 1204)
 	}
 
+}
+
+func getLableHostname(host string, username string, password string)(string)  {
+	url := NewURL(host, username, password)
+	ctx := context.Background()
+	c, err := NewClient(ctx, url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer c.Logout(ctx)
+
+	m := view.NewManager(c.Client)
+
+	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Datastore"}, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer v.Destroy(ctx)
+
+	v, err = m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"HostSystem"}, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var hss []mo.HostSystem
+	err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, hs := range hss {
+		return hs.Summary.Config.Name
+	}
+	return ""
 }
