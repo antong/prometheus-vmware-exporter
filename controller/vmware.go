@@ -115,6 +115,13 @@ func freeCPU(hs mo.HostSystem) float64 {
 	return float64(freeCPU)
 }
 
+func convertTime(vm mo.VirtualMachine) float64 {
+	if vm.Summary.Runtime.BootTime == nil {
+		return 0
+	}
+	return float64(vm.Summary.Runtime.BootTime.Unix())
+}
+
 func powerState(s types.HostSystemPowerState) float64 {
 	if s == "poweredOn" {
 		return 1
@@ -148,9 +155,8 @@ func RegistredMetrics() {
 }
 
 func NewVmwareHostMetrics(host string, username string, password string) {
-	url := NewURL(host, username, password)
 	ctx := context.Background()
-	c, err := NewClient(ctx, url)
+	c, err := NewClient(ctx, host, username, password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -173,21 +179,19 @@ func NewVmwareHostMetrics(host string, username string, password string) {
 	}
 
 	for _, hs := range hss {
-		lableEsxHost := hs.Summary.Config.Name
-		prometheusHostPowerState.WithLabelValues(lableEsxHost).Set(powerState(hs.Summary.Runtime.PowerState))
-		prometheusHostBoot.WithLabelValues(lableEsxHost).Set(float64(hs.Summary.Runtime.BootTime.Unix()))
-		prometheusTotalCpu.WithLabelValues(lableEsxHost).Set(totalCpu(hs))
-		prometheusUsageCpu.WithLabelValues(lableEsxHost).Set(freeCPU(hs))
-		prometheusTotalMem.WithLabelValues(lableEsxHost).Set(float64(hs.Summary.Hardware.MemorySize))
-		prometheusUsageMem.WithLabelValues(lableEsxHost).Set(float64(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
+		prometheusHostPowerState.WithLabelValues(host).Set(powerState(hs.Summary.Runtime.PowerState))
+		prometheusHostBoot.WithLabelValues(host).Set(float64(hs.Summary.Runtime.BootTime.Unix()))
+		prometheusTotalCpu.WithLabelValues(host).Set(totalCpu(hs))
+		prometheusUsageCpu.WithLabelValues(host).Set(freeCPU(hs))
+		prometheusTotalMem.WithLabelValues(host).Set(float64(hs.Summary.Hardware.MemorySize))
+		prometheusUsageMem.WithLabelValues(host).Set(float64(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
 	}
 
 }
 
 func NewVmwareDsMetrics(host string, username string, password string) {
-	url := NewURL(host, username, password)
 	ctx := context.Background()
-	c, err := NewClient(ctx, url)
+	c, err := NewClient(ctx, host, username, password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -209,20 +213,17 @@ func NewVmwareDsMetrics(host string, username string, password string) {
 		log.Fatal(err)
 	}
 
-	lableEsxHost := getLableHostname(host, username, password)
-
 	for _, ds := range dss {
 		dsname := ds.Summary.Name
-		prometheusTotalDs.WithLabelValues(dsname, lableEsxHost).Set(float64(ds.Summary.Capacity))
-		prometheusUsageDs.WithLabelValues(dsname, lableEsxHost).Set(float64(ds.Summary.FreeSpace))
+		prometheusTotalDs.WithLabelValues(dsname, host).Set(float64(ds.Summary.Capacity))
+		prometheusUsageDs.WithLabelValues(dsname, host).Set(float64(ds.Summary.FreeSpace))
 	}
 
 }
 
 func NewVmwareVmMetrics(host string, username string, password string) {
-	url := NewURL(host, username, password)
 	ctx := context.Background()
-	c, err := NewClient(ctx, url)
+	c, err := NewClient(ctx, host, username, password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -244,52 +245,14 @@ func NewVmwareVmMetrics(host string, username string, password string) {
 		log.Fatal(err)
 	}
 
-	lableEsxHost := getLableHostname(host, username, password)
-
 	for _, vm := range vms {
 		vmname := vm.Summary.Config.Name
-		prometheusVmBoot.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Runtime.BootTime.Unix()))
-		prometheusVmCpuAval.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Runtime.MaxCpuUsage) * 1000 * 1000)
-		prometheusVmCpuUsage.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.QuickStats.OverallCpuUsage) * 1000 * 1000)
-		prometheusVmNumCpu.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Config.NumCpu))
-		prometheusVmMemAval.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.Config.MemorySizeMB))
-		prometheusVmMemUsage.WithLabelValues(vmname, lableEsxHost).Set(float64(vm.Summary.QuickStats.GuestMemoryUsage) * 1024 * 1204)
+		prometheusVmBoot.WithLabelValues(vmname, host).Set(convertTime(vm))
+		prometheusVmCpuAval.WithLabelValues(vmname, host).Set(float64(vm.Summary.Runtime.MaxCpuUsage) * 1000 * 1000)
+		prometheusVmCpuUsage.WithLabelValues(vmname, host).Set(float64(vm.Summary.QuickStats.OverallCpuUsage) * 1000 * 1000)
+		prometheusVmNumCpu.WithLabelValues(vmname, host).Set(float64(vm.Summary.Config.NumCpu))
+		prometheusVmMemAval.WithLabelValues(vmname, host).Set(float64(vm.Summary.Config.MemorySizeMB))
+		prometheusVmMemUsage.WithLabelValues(vmname, host).Set(float64(vm.Summary.QuickStats.GuestMemoryUsage) * 1024 * 1204)
 	}
 
-}
-
-func getLableHostname(host string, username string, password string)(string)  {
-	url := NewURL(host, username, password)
-	ctx := context.Background()
-	c, err := NewClient(ctx, url)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer c.Logout(ctx)
-
-	m := view.NewManager(c.Client)
-
-	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Datastore"}, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer v.Destroy(ctx)
-
-	v, err = m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"HostSystem"}, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var hss []mo.HostSystem
-	err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, hs := range hss {
-		return hs.Summary.Config.Name
-	}
-	return ""
 }

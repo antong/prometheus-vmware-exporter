@@ -13,7 +13,7 @@ import (
 var (
 	listen   = ":9512"
 	host     = ""
-	userName = ""
+	username = ""
 	password = ""
 	logLevel = "info"
 )
@@ -29,7 +29,7 @@ func env(key, def string) string {
 func init() {
 	flag.StringVar(&listen, "listen", env("ESX_LISTEN", listen), "listen port")
 	flag.StringVar(&host, "host", env("ESX_HOST", host), "URL ESX host ")
-	flag.StringVar(&userName, "username", env("ESX_USERNAME", userName), "User for ESX")
+	flag.StringVar(&username, "username", env("ESX_USERNAME", username), "User for ESX")
 	flag.StringVar(&password, "password", env("ESX_PASSWORD", password), "password for ESX")
 	flag.StringVar(&logLevel, "log", env("ESX_LOG", logLevel), "Log levelmust be, debug or info")
 	controllers.RegistredMetrics()
@@ -48,17 +48,17 @@ func init() {
 func getMetrics() {
 	go func() {
 		loger("Start collect host metrics", "debug")
-		controllers.NewVmwareHostMetrics(host, userName, password)
+		controllers.NewVmwareHostMetrics(host, username, password)
 		loger("End collect host metrics", "debug")
 	}()
 	go func() {
 		loger("Start collect datastore metrics", "debug")
-		controllers.NewVmwareDsMetrics(host, userName, password)
+		controllers.NewVmwareDsMetrics(host, username, password)
 		loger("End collect datastore metrics", "debug")
 	}()
 	go func() {
 		loger("Start collect VM metrics", "debug")
-		controllers.NewVmwareVmMetrics(host, userName, password)
+		controllers.NewVmwareVmMetrics(host, username, password)
 		loger("End collect VM metrics", "debug")
 	}()
 }
@@ -87,7 +87,7 @@ func main() {
 		loger("Yor must configured systemm env ESX_HOST or key -host", "fatal")
 		os.Exit(1)
 	}
-	if userName == "" {
+	if username == "" {
 		loger("Yor must configured system env ESX_USERNAME or key -username", "fatal")
 		os.Exit(1)
 	}

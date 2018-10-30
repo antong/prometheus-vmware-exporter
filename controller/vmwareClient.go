@@ -6,20 +6,47 @@ import (
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/soap"
+	"net/url"
 )
 
-func NewURL(host string, username string, password string) string {
-	url := fmt.Sprintf("https://%s:%s@%s"+vim25.Path, username, password, host)
-	return url
+func newUrl(username, password string, u *url.URL) {
 
+	if username != "" {
+		var password string
+		var ok bool
+
+		if u.User != nil {
+			password, ok = u.User.Password()
+		}
+
+		if ok {
+			u.User = url.UserPassword(username, password)
+		} else {
+			u.User = url.User(username)
+		}
+	}
+
+	if password != "" {
+		var username string
+
+		if u.User != nil {
+			username = u.User.Username()
+		}
+
+		u.User = url.UserPassword(username, password)
+	}
 }
 
-func NewClient(ctx context.Context, url string) (*govmomi.Client, error) {
+func NewClient(ctx context.Context, host, username, password string) (*govmomi.Client, error) {
 
-	u, err := soap.ParseURL(url)
+	var baseurl = fmt.Sprintf("https://username:password@%s"+vim25.Path, host)
+
+	u, err := soap.ParseURL(baseurl)
 	if err != nil {
 		return nil, err
 	}
+
+	newUrl(username, password, u)
 
 	return govmomi.NewClient(ctx, u, true)
 }
