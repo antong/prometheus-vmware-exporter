@@ -22,7 +22,6 @@ func env(key, def string) string {
 	if x := os.Getenv(key); x != "" {
 		return x
 	}
-
 	return def
 }
 
@@ -31,75 +30,70 @@ func init() {
 	flag.StringVar(&host, "host", env("ESX_HOST", host), "URL ESX host ")
 	flag.StringVar(&username, "username", env("ESX_USERNAME", username), "User for ESX")
 	flag.StringVar(&password, "password", env("ESX_PASSWORD", password), "password for ESX")
-	flag.StringVar(&logLevel, "log", env("ESX_LOG", logLevel), "Log levelmust be, debug or info")
-	controllers.RegistredMetrics()
-	getMetrics()
+	flag.StringVar(&logLevel, "log", env("ESX_LOG", logLevel), "Log level must be, debug or info")
 	flag.Parse()
-
-	logLevel, err := log.ParseLevel(logLevel)
-
-	if err != nil {
-		fmt.Printf("log-level is bad value - `%s`: %s\n", logLevel, err)
-		os.Exit(1)
-	}
-	log.SetLevel(logLevel)
+	controllers.RegistredMetrics()
+	collectMetrics()
 }
 
-func getMetrics() {
+func collectMetrics() {
+	logger, err := initLogger()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	go func() {
-		loger("Start collect host metrics", "debug")
-		controllers.NewVmwareHostMetrics(host, username, password)
-		loger("End collect host metrics", "debug")
+		logger.Debugf("Start collect host metrics")
+		controllers.NewVmwareHostMetrics(host, username, password, logger)
+		logger.Debugf("End collect host metrics")
 	}()
 	go func() {
-		loger("Start collect datastore metrics", "debug")
-		controllers.NewVmwareDsMetrics(host, username, password)
-		loger("End collect datastore metrics", "debug")
+		logger.Debugf("Start collect datastore metrics")
+		controllers.NewVmwareDsMetrics(host, username, password, logger)
+		logger.Debugf("End collect datastore metrics")
 	}()
 	go func() {
-		loger("Start collect VM metrics", "debug")
-		controllers.NewVmwareVmMetrics(host, username, password)
-		loger("End collect VM metrics", "debug")
+		logger.Debugf("Start collect VM metrics")
+		controllers.NewVmwareVmMetrics(host, username, password, logger)
+		logger.Debugf("End collect VM metrics")
 	}()
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		getMetrics()
+		collectMetrics()
 	}
 	h := promhttp.Handler()
 	h.ServeHTTP(w, r)
 }
 
-func loger(msg string, lvl string) {
-	switch lvl {
-	case "info":
-		log.WithFields(log.Fields{"Message": msg}).Info()
-	case "fatal":
-		log.WithFields(log.Fields{"Message": msg}).Debug()
-	case "debug":
-		log.WithFields(log.Fields{"Message": msg}).Debug()
+func initLogger() (*log.Logger, error) {
+	logger := log.New()
+	logrusLogLevel, err := log.ParseLevel(logLevel)
+	if err != nil {
+		return logger, err
 	}
+	logger.SetLevel(logrusLogLevel)
+	logger.Formatter = &log.TextFormatter{DisableTimestamp: false, FullTimestamp: true}
+	return logger, nil
 }
 
 func main() {
+	logger, err := initLogger()
+	if err != nil {
+		logger.Fatal(err)
+	}
 	if host == "" {
-		loger("Yor must configured systemm env ESX_HOST or key -host", "fatal")
-		os.Exit(1)
+		logger.Fatal("Yor must configured systemm env ESX_HOST or key -host")
 	}
 	if username == "" {
-		loger("Yor must configured system env ESX_USERNAME or key -username", "fatal")
-		os.Exit(1)
+		logger.Fatal("Yor must configured system env ESX_USERNAME or key -username")
 	}
 	if password == "" {
-		loger("Yor must configured system env ESX_PASSWORD or key -password", "debug")
-		os.Exit(1)
+		logger.Fatal("Yor must configured system env ESX_PASSWORD or key -password")
 	}
-
 	msg := fmt.Sprintf("Exporter start on port %s", listen)
-	loger(msg, "info")
+	logger.Info(msg)
 	http.HandleFunc("/metrics", handler)
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
 			<head><title>VMware Exporter</title></head>
@@ -109,7 +103,5 @@ func main() {
 			</body>
 			</html>`))
 	})
-
-	log.Fatal(http.ListenAndServe(listen, nil))
-
+	logger.Fatal(http.ListenAndServe(listen, nil))
 }
