@@ -34,7 +34,7 @@ var (
 		Namespace: namespace,
 		Subsystem: "host",
 		Name:      "cpu_usage",
-		Help:      "CPU Free",
+		Help:      "CPU Usage",
 	}, []string{"host_name"})
 	prometheusTotalMem = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
@@ -46,7 +46,7 @@ var (
 		Namespace: namespace,
 		Subsystem: "host",
 		Name:      "memory_usage",
-		Help:      "Memory Free",
+		Help:      "Memory Usage",
 	}, []string{"host_name"})
 	prometheusTotalDs = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
@@ -107,12 +107,6 @@ var (
 func totalCpu(hs mo.HostSystem) float64 {
 	totalCPU := int64(hs.Summary.Hardware.CpuMhz) * int64(hs.Summary.Hardware.NumCpuCores)
 	return float64(totalCPU)
-}
-
-func freeCPU(hs mo.HostSystem) float64 {
-	totalCPU := int64(hs.Summary.Hardware.CpuMhz) * int64(hs.Summary.Hardware.NumCpuCores)
-	freeCPU := int64(totalCPU) - int64(hs.Summary.QuickStats.OverallCpuUsage)
-	return float64(freeCPU)
 }
 
 func convertTime(vm mo.VirtualMachine) float64 {
@@ -176,7 +170,7 @@ func NewVmwareHostMetrics(host string, username string, password string, logger 
 		prometheusHostPowerState.WithLabelValues(host).Set(powerState(hs.Summary.Runtime.PowerState))
 		prometheusHostBoot.WithLabelValues(host).Set(float64(hs.Summary.Runtime.BootTime.Unix()))
 		prometheusTotalCpu.WithLabelValues(host).Set(totalCpu(hs))
-		prometheusUsageCpu.WithLabelValues(host).Set(freeCPU(hs))
+		prometheusUsageCpu.WithLabelValues(host).Set(float64(hs.Summary.QuickStats.OverallCpuUsage))
 		prometheusTotalMem.WithLabelValues(host).Set(float64(hs.Summary.Hardware.MemorySize))
 		prometheusUsageMem.WithLabelValues(host).Set(float64(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
 	}
