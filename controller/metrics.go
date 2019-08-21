@@ -7,6 +7,7 @@ import (
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
+	"github.com/vmware/govmomi/find"
 )
 
 const namespace = "vmware"
@@ -48,6 +49,12 @@ var (
 		Name:      "memory_usage",
 		Help:      "Memory Usage",
 	}, []string{"host_name"})
+	prometheusDiskOk = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: namespace,
+		Subsystem: "host",
+		Name:      "disk_ok",
+		Help:      "Disk is working normally",
+	}, []string{"host_name", "device"})
 	prometheusTotalDs = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: "datastore",
@@ -137,6 +144,7 @@ func RegistredMetrics() {
 		prometheusUsageCpu,
 		prometheusTotalMem,
 		prometheusUsageMem,
+		prometheusDiskOk,
 		prometheusTotalDs,
 		prometheusUsageDs,
 		prometheusVmBoot,
@@ -173,6 +181,32 @@ func NewVmwareHostMetrics(host string, username string, password string, logger 
 		prometheusUsageCpu.WithLabelValues(host).Set(float64(hs.Summary.QuickStats.OverallCpuUsage))
 		prometheusTotalMem.WithLabelValues(host).Set(float64(hs.Summary.Hardware.MemorySize))
 		prometheusUsageMem.WithLabelValues(host).Set(float64(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
+
+	}
+	finder := find.NewFinder(c.Client)
+	hs, err := finder.DefaultHostSystem(ctx)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	ss, err := hs.ConfigManager().StorageSystem(ctx)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	var hostss mo.HostStorageSystem
+	err = ss.Properties(ctx, ss.Reference(), nil, &hostss)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	for _, e := range hostss.StorageDeviceInfo.ScsiLun {
+		lun := e.GetScsiLun()
+		ok := 1.0
+		for _, s := range lun.OperationalState {
+			if s != "ok" {
+				ok = 0
+				break
+			}
+		}
+		prometheusDiskOk.WithLabelValues(host, lun.DeviceName).Set(ok)
 	}
 }
 
