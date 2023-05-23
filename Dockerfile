@@ -1,6 +1,6 @@
 FROM golang:1.20 as builder
 WORKDIR /src/github.com/sylweltan/prometheus-vmware-exporter
-COPY ./prometheus-vmware-exporter /src/github.com/sylweltan/prometheus-vmware-exporter/
+COPY ./ /src/github.com/sylweltan/prometheus-vmware-exporter
 RUN go get -d -v
 RUN CGO_ENABLED=0 GOOS=linux go build
 
