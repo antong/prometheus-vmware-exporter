@@ -20,3 +20,4 @@ docker run -b \
   --env=ESX_LOG debug \
   prometheus-vmware-exporter 
 ```
+
