@@ -1,12 +1,15 @@
 # prometheus-vmware-exporter
+
 Collect metrics ESXi Host
 
 ## Build
-```sh 
+
+```sh
 docker build -t prometheus-vmware-exporter .
 ```
 
 ## Run
+
 ```sh
 docker run -b \
   --restart=always \
