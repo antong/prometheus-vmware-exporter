@@ -6,7 +6,8 @@ Collect metrics ESXi Host
 
 [![Scanned by Frogbot](https://raw.github.com/jfrog/frogbot/master/images/frogbot-badge.svg)](https://github.com/jfrog/frogbot#readme)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sylweltan/prometheus-vmware-exporter)](https://goreportcard.com/report/github.com/sylweltan/prometheus-vmware-exporter)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=prometheus-vmware-exporter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=prometheus-vmware-exporter)
+<!-- [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=prometheus-vmware-exporter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=prometheus-vmware-exporter) -->
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=prometheus-vmware-exporter)](https://sonarcloud.io/summary/new_code?id=prometheus-vmware-exporter)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=prometheus-vmware-exporter&metric=coverage)](https://sonarcloud.io/summary/new_code?id=prometheus-vmware-exporter)
 
 ## Build
