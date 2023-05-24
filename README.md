@@ -4,7 +4,7 @@ Collect metrics ESXi Host
 
 ## Badge
 
-[![Go CI](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/ci.yaml?branch=master&event=push)](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)
+[![Go CI](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/ci.yaml?branch=master&event=push)
 [![Frogbot Scan Pull Request](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/frogbot-scan-pr-go.yml)](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/frogbot-scan-pr-go.yml/badge.svg)
 [![Scanned by Frogbot](https://raw.github.com/jfrog/frogbot/master/images/frogbot-badge.svg)](https://github.com/jfrog/frogbot#readme)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sylweltan/prometheus-vmware-exporter)](https://goreportcard.com/report/github.com/sylweltan/prometheus-vmware-exporter)
