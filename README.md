@@ -4,6 +4,9 @@ Collect metrics ESXi Host
 
 ## Badge
 
+[![License](https://img.shields.io/github/license/sylweltan/prometheus-vmware-exporter)](/LICENSE)
+[![Release](https://img.shields.io/github/release/sylweltan/prometheus-vmware-exporter.svg)](https://github.com/sylweltan/prometheus-vmware-exporter/releases/latest)
+[![GitHub Releases Stats of prometheus-vmware-exporter](https://img.shields.io/github/downloads/sylweltan/prometheus-vmware-exporter/total.svg?logo=github)](https://somsubhra.github.io/github-release-stats/?username=sylweltan&repository=prometheus-vmware-exporter)
 [![Go CI](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/ci.yaml?branch=master&event=push)
 [![Frogbot Scan Pull Request](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/frogbot-scan-pr-go.yml/badge.svg)](https://github.com/sylweltan/prometheus-vmware-exporter/actions/workflows/frogbot-scan-pr-go.yml)
 [![Scanned by Frogbot](https://raw.github.com/jfrog/frogbot/master/images/frogbot-badge.svg)](https://github.com/jfrog/frogbot#readme)

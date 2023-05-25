@@ -3,6 +3,12 @@ on:
   push:
     tags-ignore:
       - '**'
+    paths:
+      - "go.sum"
+      - "go.mod"
+      - "**.go"
+      - ".github/workflows/sast.yaml"
+      - ".golangci.yml"
   pull_request:
 jobs:
   Static-Check:
