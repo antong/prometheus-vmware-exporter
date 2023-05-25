@@ -10,6 +10,7 @@ on:
       - ".github/workflows/sast.yaml"
       - ".golangci.yml"
   pull_request:
+
 jobs:
   Static-Check:
     runs-on: ubuntu-latest
@@ -28,6 +29,9 @@ jobs:
       - name: Static Code Analysis
         uses: golangci/golangci-lint-action@v3
         with:
+          skip-cache: true
+          skip-pkg-cache: true
+          skip-build-cache: true
           args: |
             --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
 
