@@ -32,10 +32,14 @@ jobs:
             --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
 
 
-            # --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 
-           
-            # --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
-            # --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 
+
+          # --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
+
+
+          # --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 
+          
+          # --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
+          # --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 
 
       # - name: Cache golangci-lint report
       #   uses: actions/cache@v2
