@@ -1,8 +1,8 @@
 name: "Static Analysis"
 on:
   push:
-    tags-ignore:
-      - '**'
+    # tags-ignore:
+    #   - '**'
     paths:
       - "go.sum"
       - "go.mod"
