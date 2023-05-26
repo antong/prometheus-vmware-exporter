@@ -5,6 +5,8 @@ sylweltan/**
 .scannerwork/**
 *report*.json
 *report*.xml
+*report*.out
+
 
 main_test.go
 
