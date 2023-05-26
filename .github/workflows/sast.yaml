@@ -33,13 +33,11 @@ jobs:
           skip-pkg-cache: true
           skip-build-cache: true
           args: |
-            --timeout 5m --out-${NO_FUTURE}format colored-line-number -issues-exit-code 0 --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
+            --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
 
 
-
+          # --timeout 5m --out-${NO_FUTURE}format colored-line-number -issues-exit-code 0 --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
           # --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
-
-
           # --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 
           
           # --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
@@ -101,6 +99,9 @@ jobs:
         with:
           path: ./gosec-report.json
           key: ${{ github.sha }}
+
+      - name: Debug stop
+        run: find . -name *.json
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v1.9.1
