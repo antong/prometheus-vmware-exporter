@@ -42,6 +42,13 @@ jobs:
           # --timeout 5m --out-${NO_FUTURE}format colored-line-number --enable errcheck,gosimple,govet,ineffassign,staticcheck,typecheck,unused,gocritic,asasalint,asciicheck,errchkjson,exportloopref,forcetypeassert,makezero,nilerr,unparam,unconvert,wastedassign,usestdlibvars 
           # --timeout 5m --out-format checkstyle:golangci-report.xml -issues-exit-code 0 
 
+      - name: Cache gosec report
+        uses: actions/cache@v2
+        id: restore-golangci-lint-report
+        with:
+          path: ./golangci-report.xml
+          key: ${{ github.sha }}
+
       # - name: Cache golangci-lint report
       #   uses: actions/cache@v2
       #   env:
@@ -82,8 +89,8 @@ jobs:
 
   SonarCloud:
     runs-on: ubuntu-latest
-    # needs: [Static-Check,Go-Sec]
-    needs: [Go-Sec]
+    needs: [Static-Check,Go-Sec]
+    # needs: [Go-Sec]
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -97,6 +104,12 @@ jobs:
         id: restore-gosec-report
         with:
           path: ./gosec-report.json
+          key: ${{ github.sha }}
+
+      - uses: actions/cache@v2
+        id: restore-golangci-lint-report
+        with:
+          path: ./golangci-report.xml
           key: ${{ github.sha }}
 
       - name: Debug stop
