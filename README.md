@@ -22,13 +22,18 @@ Collect metrics ESXi Host
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=prometheus-vmware-exporter)](https://sonarcloud.io/summary/new_code?id=prometheus-vmware-exporter)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B20660%2Fgithub.com%2Fsylweltan%2Fprometheus-vmware-exporter.svg?type=large)](https://app.fossa.com/projects/custom%2B20660%2Fgithub.com%2Fsylweltan%2Fprometheus-vmware-exporter?ref=badge_large)
 
-## Build
+
+## Run binary
 
 ```sh
-docker build -t prometheus-vmware-exporter .
+export ESX_HOST=esx.domain.local
+export ESX_USERNAME=user
+export ESX_PASSWORD=password
+export ESX_LOG=debug
+prometheus-vmware-exporter &
 ```
 
-## Run
+## Run Docker
 
 ```sh
 docker run -d \
@@ -38,5 +43,5 @@ docker run -d \
   --env=ESX_USERNAME user \
   --env=ESX_PASSWORD password \
   --env=ESX_LOG debug \
-  prometheus-vmware-exporter 
+  sylweltan/prometheus-vmware-exporter 
 ```
